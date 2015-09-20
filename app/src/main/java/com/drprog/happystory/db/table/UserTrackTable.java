@@ -15,11 +15,14 @@ public class UserTrackTable extends SQLBaseTable<TrackPoint> {
 
     public static final String CONTENT_TYPE = CONTENT_TYPE_PREFIX + TABLE_NAME;
     public static final String CONTENT_ITEM_TYPE = CONTENT_ITEM_TYPE_PREFIX + TABLE_NAME;
+
+    public static final String URI_PARAM_QUERY_OFFSET = "offset";
+    public static final String URI_PARAM_QUERY_LIMIT = "limit";
+
     public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(TABLE_NAME).build();
 
     public static final String FIELD_VALUE = "value";
     public static final String FIELD_TIMESTAMP = "timestamp";
-
     protected static final String SCRIPT_CREATE_TABLE = "create table " + TABLE_NAME + " ( " +
             FIELD_ID + " integer primary key, " +
             FIELD_TIMESTAMP + " integer(4) not null default (strftime('%s','now'), " +
@@ -32,6 +35,13 @@ public class UserTrackTable extends SQLBaseTable<TrackPoint> {
 
     public static Uri buildUri(long _id) {
         return ContentUris.withAppendedId(CONTENT_URI, _id);
+    }
+
+    public static Uri buildUriForAllWithLimit(long _offset, long _limit) {
+        return CONTENT_URI.buildUpon()
+                .appendQueryParameter(URI_PARAM_QUERY_OFFSET, String.valueOf(_offset))
+                .appendQueryParameter(URI_PARAM_QUERY_LIMIT, String.valueOf(_limit))
+                .build();
     }
 
     @Override

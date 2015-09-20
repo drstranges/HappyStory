@@ -1,14 +1,19 @@
 package com.drprog.happystory.db;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import com.drprog.happystory.db.table.SQLBaseTable;
 import com.drprog.happystory.db.table.UserTrackTable;
 
-final class DatabaseHelper extends SQLiteOpenHelper {
+import java.util.Collections;
+import java.util.List;
+
+public final class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "journal.db";
     private static final int DATABASE_VERSION = 1;
@@ -84,6 +89,13 @@ final class DatabaseHelper extends SQLiteOpenHelper {
     public UserTrackTable openUserTrackTable(boolean _withWritableAccess){
         openDb(_withWritableAccess);
         return mUserTrackTable;
+    }
+
+    public <T> List<T> convertCursorToList(Cursor _cursor, Class<? extends SQLBaseTable> _table){
+        if (UserTrackTable.class.equals(_table)){
+            return (List<T>) mUserTrackTable.getList(_cursor);
+        }
+        return Collections.emptyList();
     }
 
     private void openDb(boolean _withWritableAccess) {

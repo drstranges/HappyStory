@@ -6,6 +6,7 @@ import android.content.ContentValues;
 import android.content.UriMatcher;
 import android.database.Cursor;
 import android.net.Uri;
+import android.text.TextUtils;
 
 import com.drprog.happystory.db.table.SQLBaseTable;
 import com.drprog.happystory.db.table.UserTrackTable;
@@ -17,13 +18,14 @@ public class TrackProvider extends ContentProvider {
 
     private static final int USER_TRACK = 100;
     private static final int USER_TRACK_ID = 101;
-
+//    private static final int USER_TRACK_WITH_LIMIT = 102;
     private static UriMatcher buildUriMatcher() {
 
         final UriMatcher matcher = new UriMatcher(UriMatcher.NO_MATCH);
         final String authority = SQLBaseTable.CONTENT_AUTHORITY;
 
         matcher.addURI(authority, UserTrackTable.TABLE_NAME, USER_TRACK);
+//        matcher.addURI(authority, UserTrackTable.TABLE_NAME + "/limit/#", USER_TRACK_WITH_LIMIT);
         matcher.addURI(authority, UserTrackTable.TABLE_NAME + "/#", USER_TRACK_ID);
 
         return matcher;
@@ -35,20 +37,43 @@ public class TrackProvider extends ContentProvider {
         return true;
     }
 
+    private Cursor queryUserTrackTable(Uri _uri, String[] _projection, String _selection,
+                                       String[] _selectionArgs, String _sortOrder){
+        String limitClouse = null;
+        final String limit = _uri.getQueryParameter(UserTrackTable.URI_PARAM_QUERY_LIMIT);
+        if (TextUtils.isEmpty(limit)) {
+            final String offset = _uri.getQueryParameter(UserTrackTable.URI_PARAM_QUERY_OFFSET);
+            limitClouse = (TextUtils.isEmpty(offset) ? "" : offset + ",") + limit;
+        }
+        return mOpenHelper.openUserTrackTable(false).getAll(
+                _projection,
+                _selection,
+                _selectionArgs,
+                _sortOrder,
+                limitClouse);
+    }
+
     @Override
     public Cursor query(Uri _uri, String[] _projection, String _selection, String[] _selectionArgs, String _sortOrder) {
         Cursor retCursor;
         switch (sUriMatcher.match(_uri)) {
             // "user_track"
             case USER_TRACK: {
-                retCursor = mOpenHelper.openUserTrackTable(false).getAll(
-                        _projection,
-                        _selection,
-                        _selectionArgs,
-                        _sortOrder
-                );
+                retCursor = queryUserTrackTable(_uri, _projection, _selection, _selectionArgs, _sortOrder);
                 break;
             }
+//            // "user_track/limit/#"
+//            case USER_TRACK_WITH_LIMIT: {
+//                limit = _uri.getPathSegments().get(2);
+//                retCursor = mOpenHelper.openUserTrackTable(false).getAll(
+//                        _projection,
+//                        _selection,
+//                        _selectionArgs,
+//                        _sortOrder,
+//                        limit
+//                );
+//                break;
+//            }
             // "user_track/#"
             case USER_TRACK_ID: {
                 retCursor = mOpenHelper.openUserTrackTable(false).get(

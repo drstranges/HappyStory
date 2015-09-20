@@ -124,7 +124,7 @@ public abstract class SQLBaseTable<T> {
         return getList(cur);
     }
 
-    protected List<T> getList(final Cursor cur) {
+    public List<T> getList(final Cursor cur) {
         List<T> itemList = new ArrayList<>();
         if (DbUtils.checkCursor(cur)) {
             do {
@@ -353,7 +353,7 @@ public abstract class SQLBaseTable<T> {
         }
     }
 
-    public Cursor getAll(String[] _projection, String _selection, String[] _selectionArgs, String _orderBy) {
+    public Cursor getAll(String[] _projection, String _selection, String[] _selectionArgs, String _orderBy, String _limit) {
         return mSQLiteDatabase.query(
                 getTableName(),                    // The table name
                 _projection,
@@ -361,7 +361,8 @@ public abstract class SQLBaseTable<T> {
                 _selectionArgs,
                 null,                               // GROUP BY clause
                 null,
-                _orderBy);
+                _orderBy,
+                _limit);
     }
 
     public Cursor get(String[] _projection, long _id, String _orderBy) {
