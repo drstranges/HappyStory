@@ -1,11 +1,13 @@
 package com.drprog.happystory.adapter;
 
 import android.content.Context;
+import android.os.Bundle;
 import android.support.annotation.IntDef;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
@@ -18,6 +20,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.util.List;
 
 public class TrackAdapter extends RecyclerView.Adapter<TrackAdapter.BaseViewHolder<TrackPoint>> {
+    public static final String ACTION_ARG_VALUE = "value";
 
     private Context mContext;
 
@@ -28,7 +31,7 @@ public class TrackAdapter extends RecyclerView.Adapter<TrackAdapter.BaseViewHold
     }
 
     public interface OnActionListener {
-        void onActionFired(TrackAction _action);
+        void onActionFired(TrackAction _action, Bundle _args);
     }
 
     private OnActionListener mOnActionListener;
@@ -76,9 +79,9 @@ public class TrackAdapter extends RecyclerView.Adapter<TrackAdapter.BaseViewHold
 
         public abstract void onBind(int _position, I _item);
 
-        public void fireAction(TrackAction _action){
+        public void fireAction(TrackAction _action, Bundle _args){
             if (mOnActionListener != null){
-                mOnActionListener.onActionFired(_action);
+                mOnActionListener.onActionFired(_action, _args);
             }
         }
     }
@@ -115,17 +118,27 @@ public class TrackAdapter extends RecyclerView.Adapter<TrackAdapter.BaseViewHold
             return position == 0 ? HEADER : ITEM;
         }
 
-        public static class HeaderViewHolder extends BaseViewHolder<TrackPoint>{
+        public static class HeaderViewHolder extends BaseViewHolder<TrackPoint> implements View.OnClickListener {
             SeekBar seekBar;
+            Button pushButton;
 
             public HeaderViewHolder(View itemView, OnActionListener _itemClickListener) {
                 super(itemView, _itemClickListener);
                 seekBar = (SeekBar) itemView.findViewById(R.id.seekBar);
-
+                seekBar.setMax(Math.abs(TrackPoint.MIN_VALUE) + Math.abs(TrackPoint.MAX_VALUE));
+                pushButton = (Button) itemView.findViewById(R.id.btnPush);
+                pushButton.setOnClickListener(this);
             }
 
             @Override
             public void onBind(int _position, TrackPoint _item) {}
+
+            @Override
+            public void onClick(View v) {
+                final Bundle args = new Bundle(1);
+                args.putInt(ACTION_ARG_VALUE,seekBar.getProgress() - Math.abs(TrackPoint.MIN_VALUE));
+                fireAction(TrackAction.ADD_VALUE, args);
+            }
         }
 
         public static class ItemViewHolder extends BaseViewHolder<TrackPoint>{

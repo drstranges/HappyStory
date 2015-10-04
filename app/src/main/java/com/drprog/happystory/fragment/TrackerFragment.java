@@ -11,6 +11,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.View;
 
 import com.drprog.happystory.R;
+import com.drprog.happystory.adapter.TrackAction;
 import com.drprog.happystory.adapter.TrackAdapter;
 import com.drprog.happystory.db.DatabaseHelper;
 import com.drprog.happystory.db.model.TrackPoint;
@@ -29,6 +30,7 @@ public class TrackerFragment extends BaseFragment implements TrackAdapter.OnActi
     private RecyclerView mRecyclerView;
     private TrackAdapter mAdapter;
     private List<TrackPoint> mDataList;
+    private int mOffset = 0;
 
     @Override
     protected Integer getLayoutResId() {
@@ -69,9 +71,8 @@ public class TrackerFragment extends BaseFragment implements TrackAdapter.OnActi
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        final long offset = mDataList == null ? 0 : mDataList.size();
         final long limit = DATA_LOAD_LIMIT;
-        final Uri uri = UserTrackTable.buildUriForAllWithLimit(offset, limit);
+        final Uri uri = UserTrackTable.buildUriForAllWithLimit(mOffset, limit);
         final String sortOrder = UserTrackTable.FIELD_TIMESTAMP + " DESC";
         return new CursorLoader(getActivity(),uri,null,null,null, sortOrder);
     }
@@ -84,6 +85,7 @@ public class TrackerFragment extends BaseFragment implements TrackAdapter.OnActi
                 DatabaseHelper.getInstance(getContext())
                         .convertCursorToList(data, UserTrackTable.class);
         mDataList.addAll(newDataList);
+        mOffset = mDataList.size();
         mAdapter.setList(mDataList);
     }
 
@@ -93,11 +95,26 @@ public class TrackerFragment extends BaseFragment implements TrackAdapter.OnActi
     }
 
     @Override
-    public void onActionFired(int position, int _itemViewType) {
-        switch (_itemViewType){
-            case TrackAdapter.AdapterUtils.ITEM:
-
+    public void onActionFired(TrackAction _action, Bundle _args) {
+        switch (_action){
+            case ADD_VALUE:
+                int value = _args.getInt(TrackAdapter.ACTION_ARG_VALUE,0);
+                DatabaseHelper.getInstance(getContext())
+                        .openUserTrackTable(true).insert(new TrackPoint(value));
+                mOffset = 0;
+                restartLoader();
+                break;
+            case UPDATE:
+                mOffset = 0;
+                restartLoader();
+                break;
+            case LOAD_MORE:
+                restartLoader();
                 break;
         }
+    }
+
+    private void restartLoader() {
+        getLoaderManager().restartLoader(LOADER_USER_TRACK_ID,null,this);
     }
 }

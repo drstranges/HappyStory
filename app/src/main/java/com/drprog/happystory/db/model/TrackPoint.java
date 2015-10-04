@@ -4,8 +4,8 @@ import android.support.annotation.IntRange;
 
 public class TrackPoint {
 
-    private static final int MIN_VALUE = -5;
-    private static final int MAX_VALUE = 5;
+    public static final int MIN_VALUE = -5;
+    public static final int MAX_VALUE = 5;
 
     public Long id;
     public Long timestamp;
